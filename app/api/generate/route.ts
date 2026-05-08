@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 type RequestPayload = {
   resume?: string;
@@ -8,9 +9,18 @@ type RequestPayload = {
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
+  const supabase = createClient();
 
   if (!apiKey) {
     return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured." }, { status: 500 });
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Please login to generate a cover letter." }, { status: 401 });
   }
 
   const body = (await request.json()) as RequestPayload;
@@ -20,6 +30,28 @@ export async function POST(request: NextRequest) {
 
   if (!resume || !jobDescription) {
     return NextResponse.json({ error: "Resume and job description are required." }, { status: 400 });
+  }
+
+  const { data: usageRow, error: usageError } = await supabase
+    .from("user_usage")
+    .select("generation_count")
+    .eq("user_id", user.id)
+    .maybeSingle<{ generation_count: number }>();
+
+  if (usageError) {
+    return NextResponse.json({ error: usageError.message }, { status: 500 });
+  }
+
+  const generationCount = usageRow?.generation_count ?? 0;
+  const freeLimit = 3;
+
+  if (generationCount >= freeLimit) {
+    return NextResponse.json(
+      {
+        error: "You've used your 3 free generations. Upgrade to Pro for unlimited access.",
+      },
+      { status: 403 },
+    );
   }
 
   const prompt = `You are an expert career coach. Write a concise, compelling cover letter tailored to the provided resume and job description.
@@ -71,7 +103,23 @@ Resume:\n${resume}\n\nJob Description:\n${jobDescription}\n\nRequirements:
       return NextResponse.json({ error: "No cover letter was generated." }, { status: 502 });
     }
 
-    return NextResponse.json({ coverLetter });
+    const { error: upsertError } = await supabase.from("user_usage").upsert(
+      {
+        user_id: user.id,
+        generation_count: generationCount + 1,
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (upsertError) {
+      return NextResponse.json({ error: upsertError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      coverLetter,
+      usageCount: generationCount + 1,
+      freeLimit,
+    });
   } catch {
     return NextResponse.json({ error: "Failed to call Anthropic API." }, { status: 500 });
   }

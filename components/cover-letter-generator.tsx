@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
 
 type Tone = "Professional" | "Friendly" | "Confident";
 
@@ -14,6 +15,8 @@ export function CoverLetterGenerator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [usageCount, setUsageCount] = useState<number | null>(null);
+  const [freeLimit, setFreeLimit] = useState<number | null>(null);
 
   const canSubmit = useMemo(() => {
     return resume.trim().length > 0 && jobDescription.trim().length > 0 && !loading;
@@ -34,13 +37,20 @@ export function CoverLetterGenerator() {
         body: JSON.stringify({ resume, jobDescription, tone }),
       });
 
-      const data = (await response.json()) as { coverLetter?: string; error?: string };
+      const data = (await response.json()) as {
+        coverLetter?: string;
+        error?: string;
+        usageCount?: number;
+        freeLimit?: number;
+      };
 
       if (!response.ok || !data.coverLetter) {
         throw new Error(data.error ?? "Unable to generate cover letter.");
       }
 
       setCoverLetter(data.coverLetter);
+      setUsageCount(data.usageCount ?? null);
+      setFreeLimit(data.freeLimit ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -61,6 +71,14 @@ export function CoverLetterGenerator() {
         onSubmit={onSubmit}
         className="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-glow sm:p-6"
       >
+        <p className="text-sm text-slate-300">
+          You must be logged in to generate.{" "}
+          <Link href="/login" className="font-semibold text-gold-400 hover:text-gold-500">
+            Login here
+          </Link>
+          .
+        </p>
+
         <div className="space-y-2">
           <label htmlFor="resume" className="text-sm font-medium text-slate-200">
             CV / Resume
@@ -125,6 +143,11 @@ export function CoverLetterGenerator() {
         </button>
 
         {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+        {usageCount !== null && freeLimit !== null ? (
+          <p className="text-sm text-slate-300">
+            Free generations used: {usageCount}/{freeLimit}
+          </p>
+        ) : null}
       </form>
 
       {coverLetter ? (
