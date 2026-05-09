@@ -32,11 +32,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Resume and job description are required." }, { status: 400 });
   }
 
+  const { error: ensureUsageRowError } = await supabase.from("user_usage").upsert(
+    {
+      user_id: user.id,
+      generation_count: 0,
+    },
+    { onConflict: "user_id", ignoreDuplicates: true },
+  );
+
+  if (ensureUsageRowError) {
+    return NextResponse.json({ error: ensureUsageRowError.message }, { status: 500 });
+  }
+
   const { data: usageRow, error: usageError } = await supabase
     .from("user_usage")
     .select("generation_count")
     .eq("user_id", user.id)
-    .maybeSingle<{ generation_count: number }>();
+    .single<{ generation_count: number }>();
 
   if (usageError) {
     return NextResponse.json({ error: usageError.message }, { status: 500 });
@@ -103,21 +115,26 @@ Resume:\n${resume}\n\nJob Description:\n${jobDescription}\n\nRequirements:
       return NextResponse.json({ error: "No cover letter was generated." }, { status: 502 });
     }
 
-    const { error: upsertError } = await supabase.from("user_usage").upsert(
-      {
-        user_id: user.id,
+    const { data: updatedUsageRow, error: updateUsageError } = await supabase
+      .from("user_usage")
+      .update({
         generation_count: generationCount + 1,
-      },
-      { onConflict: "user_id" },
-    );
+      })
+      .eq("user_id", user.id)
+      .select("generation_count")
+      .single<{ generation_count: number }>();
 
-    if (upsertError) {
-      return NextResponse.json({ error: upsertError.message }, { status: 500 });
+    if (updateUsageError) {
+      return NextResponse.json({ error: updateUsageError.message }, { status: 500 });
+    }
+
+    if (!updatedUsageRow) {
+      return NextResponse.json({ error: "Failed to update usage count." }, { status: 500 });
     }
 
     return NextResponse.json({
       coverLetter,
-      usageCount: generationCount + 1,
+      usageCount: updatedUsageRow.generation_count,
       freeLimit,
     });
   } catch {
