@@ -1,11 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+type Tone = "Professional" | "Confident" | "Friendly";
+
 type RequestPayload = {
   resume?: string;
   jobDescription?: string;
-  tone?: "Professional" | "Friendly" | "Confident";
+  tone?: string;
 };
+
+const VALID_TONES: Tone[] = ["Professional", "Confident", "Friendly"];
+
+function normalizeTone(raw: string | undefined): Tone {
+  if (raw && VALID_TONES.includes(raw as Tone)) {
+    return raw as Tone;
+  }
+  return "Professional";
+}
+
+function toneGuidance(tone: Tone): string {
+  switch (tone) {
+    case "Confident":
+      return "Write with a direct, assured voice. Show impact without sounding arrogant. Short declarative sentences are welcome where they fit.";
+    case "Friendly":
+      return "Write in a warm, approachable way—conversational but still appropriate for a job application. A touch of personality is good.";
+    default:
+      return "Write in a clear, polished professional voice—credible and straightforward, not stiff or corporate-jargon heavy.";
+  }
+}
+
+async function callAnthropic(
+  apiKey: string,
+  userMessage: string,
+  maxTokens: number,
+  temperature: number,
+): Promise<string> {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: maxTokens,
+      temperature,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Anthropic API error: ${errorBody}`);
+  }
+
+  const data = (await response.json()) as {
+    content?: Array<{ type: string; text?: string }>;
+  };
+
+  const text = data.content
+    ?.filter((item) => item.type === "text" && Boolean(item.text))
+    .map((item) => item.text)
+    .join("\n")
+    .trim();
+
+  if (!text) {
+    throw new Error("Empty model response.");
+  }
+
+  return text;
+}
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -26,7 +91,7 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as RequestPayload;
   const resume = body.resume?.trim();
   const jobDescription = body.jobDescription?.trim();
-  const tone = body.tone ?? "Professional";
+  const tone = normalizeTone(body.tone);
 
   if (!resume || !jobDescription) {
     return NextResponse.json({ error: "Resume and job description are required." }, { status: 400 });
@@ -68,53 +133,48 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const prompt = `You are an expert career coach. Write a concise, compelling cover letter tailored to the provided resume and job description.
+  const draftPrompt = `You are an expert career coach. Write a concise, compelling cover letter tailored to the provided resume and job description.
 
-Tone: ${tone}
+Selected tone: ${tone}
+Tone guidance: ${toneGuidance(tone)}
 
-Resume:\n${resume}\n\nJob Description:\n${jobDescription}\n\nRequirements:
-- Keep it professional and specific.
-- Match the candidate experience to the job requirements.
-- 3 to 5 paragraphs.
-- Avoid placeholders.
-- Return plain text only.`;
+Resume:
+${resume}
+
+Job Description:
+${jobDescription}
+
+Requirements:
+- Match the candidate's experience to the job requirements with specific details.
+- Aim for 3 to 5 paragraphs.
+- No placeholders or bracketed fill-ins.
+- Return plain text only (no markdown, no subject line unless a letter greeting is natural).`;
+
+  const humanizePrompt = `You are an expert editor. Rewrite the cover letter below so it reads like a real person wrote it—natural, varied, and authentic.
+
+Keep the same selected tone: ${tone}
+${toneGuidance(tone)}
+
+Editing goals:
+- Vary sentence length: mix shorter punchy sentences with a few longer ones.
+- Use contractions where they sound natural (I'm, I've, you're, we'd, it's, that's, etc.).
+- Remove "AI-sounding" patterns: avoid stock openers like "I am writing to express my interest", "I am excited to apply", "Furthermore", "Moreover", "Additionally" when simpler transitions work; cut filler like "leverage", "utilize", "robust", "passionate about" unless truly earned.
+- Do not add new claims or facts—only rephrase what is already implied or stated.
+- Keep it appropriate for a job application.
+- Return plain text only.
+
+Cover letter to rewrite:
+<<<DRAFT>>>`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 900,
-        temperature: 0.6,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    const draft = await callAnthropic(apiKey, draftPrompt, 900, 0.55);
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      return NextResponse.json(
-        { error: `Anthropic API error: ${errorBody}` },
-        { status: response.status },
-      );
-    }
-
-    const data = (await response.json()) as {
-      content?: Array<{ type: string; text?: string }>;
-    };
-
-    const coverLetter = data.content
-      ?.filter((item) => item.type === "text" && Boolean(item.text))
-      .map((item) => item.text)
-      .join("\n")
-      .trim();
-
-    if (!coverLetter) {
-      return NextResponse.json({ error: "No cover letter was generated." }, { status: 502 });
+    let coverLetter: string;
+    try {
+      const humanizeMessage = humanizePrompt.replace("<<<DRAFT>>>", draft);
+      coverLetter = await callAnthropic(apiKey, humanizeMessage, 1000, 0.82);
+    } catch {
+      coverLetter = draft;
     }
 
     const { data: updatedUsageRow, error: updateUsageError } = await supabase
@@ -140,7 +200,9 @@ Resume:\n${resume}\n\nJob Description:\n${jobDescription}\n\nRequirements:
       freeLimit,
       isPro,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to call Anthropic API." }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to call Anthropic API.";
+    const status = message.startsWith("Anthropic API error") ? 502 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

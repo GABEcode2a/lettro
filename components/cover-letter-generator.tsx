@@ -1,12 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { UpgradePromptModal } from "@/components/upgrade-prompt-modal";
 
-type Tone = "Professional" | "Friendly" | "Confident";
+type Tone = "Professional" | "Confident" | "Friendly";
 
-const tones: Tone[] = ["Professional", "Friendly", "Confident"];
+const tones: Tone[] = ["Professional", "Confident", "Friendly"];
 
 export function CoverLetterGenerator() {
   const [resume, setResume] = useState("");
@@ -19,6 +19,7 @@ export function CoverLetterGenerator() {
   const [usageCount, setUsageCount] = useState<number | null>(null);
   const [freeLimit, setFreeLimit] = useState<number | null>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canSubmit = useMemo(() => {
     return resume.trim().length > 0 && jobDescription.trim().length > 0 && !loading;
@@ -31,6 +32,10 @@ export function CoverLetterGenerator() {
     setLoading(true);
     setError("");
     setCopied(false);
+    if (copyResetRef.current) {
+      clearTimeout(copyResetRef.current);
+      copyResetRef.current = null;
+    }
 
     try {
       const response = await fetch("/api/generate", {
@@ -67,10 +72,54 @@ export function CoverLetterGenerator() {
   }
 
   async function copyToClipboard() {
-    if (!coverLetter) return;
-    await navigator.clipboard.writeText(coverLetter);
+    if (!coverLetter.trim()) return;
+    try {
+      await navigator.clipboard.writeText(coverLetter);
+    } catch {
+      setError("Could not copy to clipboard.");
+      return;
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyResetRef.current) clearTimeout(copyResetRef.current);
+    copyResetRef.current = setTimeout(() => {
+      setCopied(false);
+      copyResetRef.current = null;
+    }, 2000);
+  }
+
+  async function downloadPdf() {
+    const text = coverLetter.trim();
+    if (!text) return;
+
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 6;
+    const paragraphs = text.split(/\n+/);
+
+    doc.setFont("times", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(20, 24, 35);
+
+    let y = margin;
+
+    for (const block of paragraphs) {
+      const wrapped = doc.splitTextToSize(block.trim(), maxWidth);
+      for (const line of wrapped) {
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += lineHeight;
+      }
+      y += lineHeight * 0.35;
+    }
+
+    doc.save("cover-letter.pdf");
   }
 
   return (
@@ -119,21 +168,27 @@ export function CoverLetterGenerator() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="tone" className="text-sm font-medium text-slate-200">
-            Tone
-          </label>
-          <select
-            id="tone"
-            value={tone}
-            onChange={(e) => setTone(e.target.value as Tone)}
-            className="w-full rounded-xl border border-slate-700 bg-navy-900 px-4 py-3 text-sm text-slate-100 focus:border-gold-500 focus:outline-none"
-          >
-            {tones.map((toneOption) => (
-              <option key={toneOption} value={toneOption}>
-                {toneOption}
-              </option>
-            ))}
-          </select>
+          <p className="text-sm font-medium text-slate-200">Tone</p>
+          <p className="text-xs text-slate-400">Choose how the letter should read before you generate.</p>
+          <div className="flex flex-wrap gap-2">
+            {tones.map((toneOption) => {
+              const selected = tone === toneOption;
+              return (
+                <button
+                  key={toneOption}
+                  type="button"
+                  onClick={() => setTone(toneOption)}
+                  className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+                    selected
+                      ? "border-gold-500 bg-gold-500/15 text-gold-400 shadow-glow"
+                      : "border-slate-600 bg-navy-900 text-slate-200 hover:border-gold-500/50 hover:text-gold-400"
+                  }`}
+                >
+                  {toneOption}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <button
@@ -161,19 +216,34 @@ export function CoverLetterGenerator() {
 
       {coverLetter ? (
         <section className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-glow sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold text-white">Generated Cover Letter</h2>
+          <h2 className="mb-4 text-xl font-semibold text-white">Generated Cover Letter</h2>
+          <label htmlFor="coverLetterOutput" className="sr-only">
+            Editable cover letter
+          </label>
+          <textarea
+            id="coverLetterOutput"
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            rows={16}
+            spellCheck
+            className="mb-4 w-full resize-y rounded-xl border border-slate-700 bg-navy-900 px-4 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-400 focus:border-gold-500 focus:outline-none"
+          />
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={copyToClipboard}
-              className="rounded-lg border border-gold-500/50 px-3 py-2 text-sm font-medium text-gold-400 transition hover:bg-gold-500/10"
+              className="inline-flex min-w-[10rem] items-center justify-center rounded-xl border border-gold-500 bg-gold-500/10 px-4 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-500/20"
             >
-              {copied ? "Copied!" : "Copy"}
+              {copied ? "Copied!" : "Copy to Clipboard"}
+            </button>
+            <button
+              type="button"
+              onClick={downloadPdf}
+              className="inline-flex min-w-[10rem] items-center justify-center rounded-xl border border-gold-500 bg-gold-500/10 px-4 py-2.5 text-sm font-semibold text-gold-400 transition hover:bg-gold-500/20"
+            >
+              Download as PDF
             </button>
           </div>
-          <article className="whitespace-pre-wrap rounded-xl bg-navy-900 p-4 text-sm leading-7 text-slate-200">
-            {coverLetter}
-          </article>
         </section>
       ) : null}
     </div>
