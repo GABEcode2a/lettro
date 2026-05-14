@@ -1,29 +1,16 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
 
-type PaidPlanKey = "pro-monthly" | "pro-yearly";
+type PlanCard = {
+  name: string;
+  price: string;
+  subtitle: string;
+  features: string[];
+  cta: string;
+  href: string;
+  highlighted: boolean;
+};
 
-type PlanCard =
-  | {
-      name: string;
-      price: string;
-      subtitle: string;
-      features: string[];
-      cta: string;
-      href: string;
-      highlighted: boolean;
-    }
-  | {
-      name: string;
-      price: string;
-      subtitle: string;
-      features: string[];
-      cta: string;
-      plan: PaidPlanKey;
-      highlighted: boolean;
-    };
+const WHOP_PRO_URL = "https://whop.com/lettro/lettro-pro-monthly";
 
 const plans: PlanCard[] = [
   {
@@ -37,59 +24,30 @@ const plans: PlanCard[] = [
   },
   {
     name: "Pro Monthly",
-    price: "$9 USDT",
+    price: "$9.99/month",
     subtitle: "Best for active job seekers",
     features: ["Unlimited generations", "Priority quality", "Priority support"],
-    cta: "Pay with USDT",
-    plan: "pro-monthly" as PaidPlanKey,
+    cta: "Get Pro Now",
+    href: WHOP_PRO_URL,
     highlighted: true,
   },
   {
     name: "Pro Yearly",
-    price: "$79 USDT",
+    price: "$79.99/year",
     subtitle: "Best value for long-term use",
     features: ["Unlimited generations", "Priority quality", "Priority support"],
-    cta: "Pay with USDT",
-    plan: "pro-yearly" as PaidPlanKey,
+    cta: "Get Pro Now",
+    href: WHOP_PRO_URL,
     highlighted: false,
   },
 ];
 
 export default function PricingPage() {
-  const [loadingPlan, setLoadingPlan] = useState<PaidPlanKey | null>(null);
-  const [error, setError] = useState("");
-
-  async function onPay(plan: PaidPlanKey) {
-    setLoadingPlan(plan);
-    setError("");
-
-    try {
-      const response = await fetch("/api/create-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-
-      const data = (await response.json()) as { paymentUrl?: string; error?: string };
-
-      if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error ?? "Unable to create payment.");
-      }
-
-      window.location.href = data.paymentUrl;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-      setLoadingPlan(null);
-    }
-  }
-
   return (
     <section className="mx-auto w-full max-w-6xl">
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-3xl font-bold text-white sm:text-4xl">Simple USDT Pricing</h1>
-        <p className="mt-3 text-slate-300">
-          Choose the plan that fits your job search. Pay securely with USDT on TRC20.
-        </p>
+        <h1 className="text-3xl font-bold text-white sm:text-4xl">Simple Pricing</h1>
+        <p className="mt-3 text-slate-300">Choose the plan that fits your job search.</p>
       </div>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -113,29 +71,25 @@ export default function PricingPage() {
             </ul>
 
             <div className="mt-6">
-              {"href" in plan ? (
+              {plan.href.startsWith("http") ? (
+                <a
+                  href={plan.href}
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400"
+                >
+                  {plan.cta}
+                </a>
+              ) : (
                 <Link
                   href={plan.href}
                   className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400"
                 >
                   {plan.cta}
                 </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => onPay(plan.plan)}
-                  disabled={loadingPlan !== null}
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {loadingPlan === plan.plan ? "Creating payment..." : plan.cta}
-                </button>
               )}
             </div>
           </article>
         ))}
       </div>
-
-      {error ? <p className="mt-6 text-center text-sm text-rose-400">{error}</p> : null}
     </section>
   );
 }
