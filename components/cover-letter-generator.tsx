@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
+import { UpgradePromptModal } from "@/components/upgrade-prompt-modal";
 
 type Tone = "Professional" | "Friendly" | "Confident";
 
@@ -17,6 +18,7 @@ export function CoverLetterGenerator() {
   const [copied, setCopied] = useState(false);
   const [usageCount, setUsageCount] = useState<number | null>(null);
   const [freeLimit, setFreeLimit] = useState<number | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   const canSubmit = useMemo(() => {
     return resume.trim().length > 0 && jobDescription.trim().length > 0 && !loading;
@@ -40,9 +42,15 @@ export function CoverLetterGenerator() {
       const data = (await response.json()) as {
         coverLetter?: string;
         error?: string;
+        code?: string;
         usageCount?: number;
         freeLimit?: number;
       };
+
+      if (response.status === 403 && data.code === "FREE_LIMIT_REACHED") {
+        setUpgradeModalOpen(true);
+        return;
+      }
 
       if (!response.ok || !data.coverLetter) {
         throw new Error(data.error ?? "Unable to generate cover letter.");
@@ -67,6 +75,7 @@ export function CoverLetterGenerator() {
 
   return (
     <div className="mt-8 space-y-8">
+      <UpgradePromptModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
       <form
         onSubmit={onSubmit}
         className="space-y-5 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 shadow-glow sm:p-6"

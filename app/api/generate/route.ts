@@ -46,21 +46,23 @@ export async function POST(request: NextRequest) {
 
   const { data: usageRow, error: usageError } = await supabase
     .from("user_usage")
-    .select("generation_count")
+    .select("generation_count, is_pro")
     .eq("user_id", user.id)
-    .single<{ generation_count: number }>();
+    .single<{ generation_count: number; is_pro: boolean }>();
 
   if (usageError) {
     return NextResponse.json({ error: usageError.message }, { status: 500 });
   }
 
   const generationCount = usageRow?.generation_count ?? 0;
+  const isPro = usageRow?.is_pro ?? false;
   const freeLimit = 3;
 
-  if (generationCount >= freeLimit) {
+  if (!isPro && generationCount >= freeLimit) {
     return NextResponse.json(
       {
         error: "You've used your 3 free generations. Upgrade to Pro for unlimited access.",
+        code: "FREE_LIMIT_REACHED",
       },
       { status: 403 },
     );
@@ -136,6 +138,7 @@ Resume:\n${resume}\n\nJob Description:\n${jobDescription}\n\nRequirements:
       coverLetter,
       usageCount: updatedUsageRow.generation_count,
       freeLimit,
+      isPro,
     });
   } catch {
     return NextResponse.json({ error: "Failed to call Anthropic API." }, { status: 500 });

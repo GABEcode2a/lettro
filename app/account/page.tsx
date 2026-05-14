@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 type UsageRow = {
   generation_count: number;
+  is_pro: boolean;
 };
 
 export default async function AccountPage() {
@@ -18,11 +19,12 @@ export default async function AccountPage() {
 
   const { data } = await supabase
     .from("user_usage")
-    .select("generation_count")
+    .select("generation_count, is_pro")
     .eq("user_id", user.id)
     .maybeSingle<UsageRow>();
 
   const generationCount = data?.generation_count ?? 0;
+  const isPro = data?.is_pro ?? false;
   const remaining = Math.max(0, 3 - generationCount);
 
   return (
@@ -31,8 +33,17 @@ export default async function AccountPage() {
       <p className="mt-2 text-slate-300">Signed in as {user.email}</p>
 
       <div className="mt-6 rounded-xl border border-slate-700 bg-navy-900 p-4">
-        <p className="text-slate-200">Free generations used: {generationCount} / 3</p>
-        <p className="mt-1 text-sm text-slate-300">Remaining free generations: {remaining}</p>
+        <p className="text-slate-200">
+          Plan:{" "}
+          <span className={isPro ? "font-semibold text-gold-400" : "font-semibold text-slate-200"}>
+            {isPro ? "Pro" : "Free"}
+          </span>
+        </p>
+        <p className="mt-1 text-sm text-slate-300">
+          {isPro
+            ? `Generations used so far: ${generationCount} (unlimited plan)`
+            : `Free generations used: ${generationCount} / 3 (remaining: ${remaining})`}
+        </p>
       </div>
 
       <Link

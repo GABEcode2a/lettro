@@ -1,9 +1,13 @@
 create table if not exists public.user_usage (
   user_id uuid primary key references auth.users(id) on delete cascade,
   generation_count integer not null default 0,
+  is_pro boolean not null default false,
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now()
 );
+
+alter table public.user_usage
+  add column if not exists is_pro boolean not null default false;
 
 create or replace function public.handle_new_user_usage()
 returns trigger
