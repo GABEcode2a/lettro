@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { UpgradePromptModal } from "@/components/upgrade-prompt-modal";
+import { downloadCoverLetterPdf } from "@/lib/cover-letter-pdf";
 
 type Tone = "Professional" | "Confident" | "Friendly";
 
@@ -91,35 +92,11 @@ export function CoverLetterGenerator() {
     const text = coverLetter.trim();
     if (!text) return;
 
-    const { jsPDF } = await import("jspdf");
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const maxWidth = pageWidth - margin * 2;
-    const lineHeight = 6;
-    const paragraphs = text.split(/\n+/);
-
-    doc.setFont("times", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(20, 24, 35);
-
-    let y = margin;
-
-    for (const block of paragraphs) {
-      const wrapped = doc.splitTextToSize(block.trim(), maxWidth);
-      for (const line of wrapped) {
-        if (y > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-        doc.text(line, margin, y);
-        y += lineHeight;
-      }
-      y += lineHeight * 0.35;
+    try {
+      await downloadCoverLetterPdf(text, resume);
+    } catch {
+      setError("Could not generate PDF.");
     }
-
-    doc.save("cover-letter.pdf");
   }
 
   return (
