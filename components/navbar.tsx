@@ -22,10 +22,16 @@ export async function Navbar() {
             Pricing
           </Link>
           <Link
+            href="/resume-builder"
+            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+          >
+            Resume Builder
+          </Link>
+          <Link
             href="/generate"
             className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-gold-400 transition hover:bg-gold-500/10"
           >
-            Get Started
+            Cover Letter
           </Link>
           {user ? (
             <>

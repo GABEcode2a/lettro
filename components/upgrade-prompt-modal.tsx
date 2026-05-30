@@ -7,9 +7,16 @@ const WHOP_PRO_URL = "https://whop.com/lettro/lettro-pro-monthly";
 type UpgradePromptModalProps = {
   open: boolean;
   onClose: () => void;
+  title?: string;
+  description?: string;
 };
 
-export function UpgradePromptModal({ open, onClose }: UpgradePromptModalProps) {
+export function UpgradePromptModal({
+  open,
+  onClose,
+  title = "You've used all 3 free generations!",
+  description = "Upgrade to Lettro Pro for unlimited cover letters",
+}: UpgradePromptModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,14 +82,14 @@ export function UpgradePromptModal({ open, onClose }: UpgradePromptModalProps) {
           id="upgrade-modal-title"
           className="mt-4 text-center text-xl font-bold tracking-tight text-white sm:text-2xl"
         >
-          You&apos;ve used all 3 free generations!
+          {title}
         </h2>
 
         <p
           id="upgrade-modal-desc"
           className="mt-3 text-center text-sm leading-relaxed text-slate-300 sm:text-base"
         >
-          Upgrade to Lettro Pro for unlimited cover letters
+          {description}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:mt-10">

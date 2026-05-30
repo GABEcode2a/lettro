@@ -9,6 +9,9 @@ create table if not exists public.user_usage (
 alter table public.user_usage
   add column if not exists is_pro boolean not null default false;
 
+alter table public.user_usage
+  add column if not exists resume_generation_count integer not null default 0;
+
 create or replace function public.handle_new_user_usage()
 returns trigger
 language plpgsql
