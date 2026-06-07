@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { hasUnlimitedGenerations, isOverFreeLimit } from "@/lib/usage-limits";
 
 type FormatStyle = "Classic" | "Modern" | "Minimal";
 
@@ -127,19 +128,22 @@ export async function POST(request: NextRequest) {
 
   const { data: usageRow, error: usageError } = await supabase
     .from("user_usage")
-    .select("resume_generation_count, is_pro")
+    .select("resume_generation_count, is_pro, is_admin")
     .eq("user_id", user.id)
-    .single<{ resume_generation_count: number; is_pro: boolean }>();
+    .single<{ resume_generation_count: number; is_pro: boolean; is_admin: boolean }>();
 
   if (usageError) {
     return NextResponse.json({ error: usageError.message }, { status: 500 });
   }
 
   const resumeGenerationCount = usageRow?.resume_generation_count ?? 0;
-  const isPro = usageRow?.is_pro ?? false;
+  const accessFlags = {
+    is_pro: usageRow?.is_pro ?? false,
+    is_admin: usageRow?.is_admin ?? false,
+  };
   const freeLimit = 2;
 
-  if (!isPro && resumeGenerationCount >= freeLimit) {
+  if (isOverFreeLimit(resumeGenerationCount, freeLimit, accessFlags)) {
     return NextResponse.json(
       {
         error: "You've used your 2 free resume generations. Upgrade to Pro for unlimited access.",
@@ -195,7 +199,7 @@ Requirements:
       resume: generatedResume,
       usageCount: updatedUsageRow.resume_generation_count,
       freeLimit,
-      isPro,
+      isPro: hasUnlimitedGenerations(accessFlags),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to call Anthropic API.";

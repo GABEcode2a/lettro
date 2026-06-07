@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { hasUnlimitedGenerations, isOverFreeLimit } from "@/lib/usage-limits";
 
 type Tone = "Professional" | "Confident" | "Friendly";
 
@@ -111,19 +112,22 @@ export async function POST(request: NextRequest) {
 
   const { data: usageRow, error: usageError } = await supabase
     .from("user_usage")
-    .select("generation_count, is_pro")
+    .select("generation_count, is_pro, is_admin")
     .eq("user_id", user.id)
-    .single<{ generation_count: number; is_pro: boolean }>();
+    .single<{ generation_count: number; is_pro: boolean; is_admin: boolean }>();
 
   if (usageError) {
     return NextResponse.json({ error: usageError.message }, { status: 500 });
   }
 
   const generationCount = usageRow?.generation_count ?? 0;
-  const isPro = usageRow?.is_pro ?? false;
+  const accessFlags = {
+    is_pro: usageRow?.is_pro ?? false,
+    is_admin: usageRow?.is_admin ?? false,
+  };
   const freeLimit = 3;
 
-  if (!isPro && generationCount >= freeLimit) {
+  if (isOverFreeLimit(generationCount, freeLimit, accessFlags)) {
     return NextResponse.json(
       {
         error: "You've used your 3 free generations. Upgrade to Pro for unlimited access.",
@@ -198,7 +202,7 @@ Cover letter to rewrite:
       coverLetter,
       usageCount: updatedUsageRow.generation_count,
       freeLimit,
-      isPro,
+      isPro: hasUnlimitedGenerations(accessFlags),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to call Anthropic API.";

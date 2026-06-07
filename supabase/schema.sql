@@ -12,6 +12,31 @@ alter table public.user_usage
 alter table public.user_usage
   add column if not exists resume_generation_count integer not null default 0;
 
+alter table public.user_usage
+  add column if not exists is_admin boolean not null default false;
+
+create or replace function public.protect_user_usage_admin_flag()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.is_admin is distinct from old.is_admin then
+    -- Block self-promotion via the client API; allow SQL editor and service role.
+    if current_setting('request.jwt.claim.role', true) is not null
+       and coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
+      new.is_admin := old.is_admin;
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_user_usage_admin_flag on public.user_usage;
+create trigger protect_user_usage_admin_flag
+  before update on public.user_usage
+  for each row execute function public.protect_user_usage_admin_flag();
+
 create or replace function public.handle_new_user_usage()
 returns trigger
 language plpgsql
