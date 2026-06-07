@@ -137,12 +137,12 @@ export async function POST(request: NextRequest) {
 
   const resumeGenerationCount = usageRow?.resume_generation_count ?? 0;
   const isPro = usageRow?.is_pro ?? false;
-  const freeLimit = 1;
+  const freeLimit = 2;
 
   if (!isPro && resumeGenerationCount >= freeLimit) {
     return NextResponse.json(
       {
-        error: "You've used your free resume generation. Upgrade to Pro for unlimited access.",
+        error: "You've used your 2 free resume generations. Upgrade to Pro for unlimited access.",
         code: "FREE_LIMIT_REACHED",
       },
       { status: 403 },

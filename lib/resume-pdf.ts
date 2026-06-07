@@ -243,8 +243,10 @@ function writeWrappedLine(
   maxWidth: number,
   fontSize: number,
   indent = 0,
+  fontStyle: "normal" | "bold" = "normal",
 ): number {
   const lh = lineHeightMm(fontSize);
+  doc.setFont("helvetica", fontStyle);
   doc.setFontSize(fontSize);
   const wrapped = doc.splitTextToSize(text, maxWidth - indent) as string[];
 
@@ -339,11 +341,9 @@ function renderJobHeader(
   y: number,
   maxWidth: number,
 ): number {
-  const titleLine = header.company ? `${header.title} — ${header.company}` : header.title;
+  const headerLine = header.company ? `${header.title} — ${header.company}` : header.title;
 
-  doc.setFont("helvetica", "bold");
-  y = writeWrappedLine(doc, titleLine, MARGIN_MM, y, maxWidth, FONT_SIZE_BODY);
-  doc.setFont("helvetica", "normal");
+  y = writeWrappedLine(doc, headerLine, MARGIN_MM, y, maxWidth, FONT_SIZE_BODY, 0, "bold");
 
   if (header.dates) {
     y = writeWrappedLine(doc, header.dates, MARGIN_MM, y, maxWidth, FONT_SIZE_BODY);

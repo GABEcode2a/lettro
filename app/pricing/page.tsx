@@ -1,45 +1,13 @@
-import Link from "next/link";
-
-type PlanCard = {
-  name: string;
-  price: string;
-  subtitle: string;
-  features: string[];
-  cta: string;
-  href: string;
-  highlighted: boolean;
-};
-
 const WHOP_PRO_URL = "https://whop.com/lettro/lettro-pro-monthly";
 
-const plans: PlanCard[] = [
-  {
-    name: "Free",
-    price: "$0",
-    subtitle: "Great for trying Lettro",
-    features: ["3 free generations", "Professional output", "Basic support"],
-    cta: "Get Started Free",
-    href: "/generate",
-    highlighted: false,
-  },
-  {
-    name: "Pro Monthly",
-    price: "$9.99/month",
-    subtitle: "Best for active job seekers",
-    features: ["Unlimited generations", "Priority quality", "Priority support"],
-    cta: "Get Pro Now",
-    href: WHOP_PRO_URL,
-    highlighted: true,
-  },
-  {
-    name: "Pro Yearly",
-    price: "$79.99/year",
-    subtitle: "Best value for long-term use",
-    features: ["Unlimited generations", "Priority quality", "Priority support"],
-    cta: "Get Pro Now",
-    href: WHOP_PRO_URL,
-    highlighted: false,
-  },
+const proFeatures = [
+  "AI Cover Letter Generator",
+  "AI Resume Builder",
+  "Unlimited generations",
+  "Fully editable output",
+  "PDF download",
+  "Priority support",
+  "More features coming soon",
 ];
 
 export default function PricingPage() {
@@ -47,48 +15,42 @@ export default function PricingPage() {
     <section className="mx-auto w-full max-w-6xl">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-3xl font-bold text-white sm:text-4xl">Simple Pricing</h1>
-        <p className="mt-3 text-slate-300">Choose the plan that fits your job search.</p>
+        <p className="mt-3 text-slate-300">One plan with everything you need to land your next role.</p>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {plans.map((plan) => (
-          <article
-            key={plan.name}
-            className={`rounded-2xl border p-6 shadow-glow ${
-              plan.highlighted
-                ? "border-gold-500/70 bg-navy-900"
-                : "border-slate-700 bg-slate-900/60"
-            }`}
-          >
-            <h2 className="text-xl font-semibold text-white">{plan.name}</h2>
-            <p className="mt-2 text-3xl font-bold text-gold-400">{plan.price}</p>
-            <p className="mt-2 text-sm text-slate-300">{plan.subtitle}</p>
+      <div className="mx-auto mt-10 max-w-md">
+        <article className="rounded-2xl border border-gold-500/70 bg-navy-900 p-6 shadow-glow sm:p-8">
+          <h2 className="text-2xl font-semibold text-white">PRO</h2>
+          <div className="mt-3 space-y-1">
+            <p className="text-3xl font-bold text-gold-400">$24.99/month</p>
+            <p className="text-lg font-semibold text-gold-400/90">or $199.99/year</p>
+          </div>
+          <p className="mt-2 text-sm text-slate-300">Everything you need for your job search.</p>
 
-            <ul className="mt-5 space-y-2 text-sm text-slate-200">
-              {plan.features.map((feature) => (
-                <li key={feature}>- {feature}</li>
-              ))}
-            </ul>
+          <ul className="mt-6 space-y-2.5 text-sm text-slate-200">
+            {proFeatures.map((feature) => (
+              <li key={feature} className="flex items-start gap-2">
+                <span className="mt-0.5 text-gold-400" aria-hidden="true">
+                  ✓
+                </span>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
 
-            <div className="mt-6">
-              {plan.href.startsWith("http") ? (
-                <a
-                  href={plan.href}
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400"
-                >
-                  {plan.cta}
-                </a>
-              ) : (
-                <Link
-                  href={plan.href}
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400"
-                >
-                  {plan.cta}
-                </Link>
-              )}
-            </div>
-          </article>
-        ))}
+          <div className="mt-8">
+            <a
+              href={WHOP_PRO_URL}
+              className="inline-flex w-full items-center justify-center rounded-xl border border-gold-500/70 bg-gold-500 px-5 py-3 text-sm font-semibold text-navy-900 transition hover:bg-gold-400"
+            >
+              Get Pro Now
+            </a>
+          </div>
+        </article>
+
+        <p className="mt-6 text-center text-sm text-slate-400">
+          Elite plan coming soon with Interview Prep, Job Tracker and more
+        </p>
       </div>
     </section>
   );

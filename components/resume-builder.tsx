@@ -104,7 +104,7 @@ export function ResumeBuilder() {
       <UpgradePromptModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
-        title="You've used your free resume generation!"
+        title="You've used your 2 free resume generations!"
         description="Upgrade to Lettro Pro for unlimited resumes and cover letters"
       />
       <form
