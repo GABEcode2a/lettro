@@ -15,6 +15,9 @@ alter table public.user_usage
 alter table public.user_usage
   add column if not exists is_admin boolean not null default false;
 
+alter table public.user_usage
+  add column if not exists interview_prep_count integer not null default 0;
+
 create or replace function public.protect_user_usage_admin_flag()
 returns trigger
 language plpgsql
