@@ -17,25 +17,25 @@ export async function Navbar() {
         <div className="flex items-center gap-3">
           <Link
             href="/pricing"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+            className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
           >
             Pricing
           </Link>
           <Link
             href="/resume-builder"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+            className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
           >
             Resume Builder
           </Link>
           <Link
             href="/interview-prep"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+            className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
           >
             Interview Prep
           </Link>
           <Link
             href="/job-tracker"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+            className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
           >
             Job Tracker
           </Link>
@@ -59,7 +59,7 @@ export async function Navbar() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+                className="rounded-lg border border-gold-500/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
               >
                 Login
               </Link>
