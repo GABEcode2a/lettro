@@ -3,6 +3,8 @@ const WHOP_PRO_URL = "https://whop.com/lettro/lettro-pro-monthly";
 const proFeatures = [
   "AI Cover Letter Generator",
   "AI Resume Builder",
+  "Interview Prep",
+  "Job Tracker",
   "Unlimited generations",
   "Fully editable output",
   "PDF download",
@@ -49,7 +51,7 @@ export default function PricingPage() {
         </article>
 
         <p className="mt-6 text-center text-sm text-slate-400">
-          Elite plan coming soon with Interview Prep, Job Tracker and more
+        Elite plan coming soon — LinkedIn Optimizer, Talent Platform and more
         </p>
       </div>
     </section>
