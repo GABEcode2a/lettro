@@ -77,3 +77,37 @@ create policy "Users can update own usage"
   for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+create table if not exists public.job_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  job_title text not null,
+  company text not null,
+  date_applied date not null,
+  status text not null default 'Applied',
+  notes text,
+  created_at timestamp with time zone not null default now()
+);
+
+alter table public.job_applications enable row level security;
+
+create policy "Users can view own job applications"
+  on public.job_applications
+  for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own job applications"
+  on public.job_applications
+  for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own job applications"
+  on public.job_applications
+  for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own job applications"
+  on public.job_applications
+  for delete
+  using (auth.uid() = user_id);

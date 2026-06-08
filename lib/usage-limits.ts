@@ -1,3 +1,5 @@
+export const FREE_JOB_LIMIT = 5;
+
 export type UsageAccessFlags = {
   is_pro: boolean;
   is_admin: boolean;
