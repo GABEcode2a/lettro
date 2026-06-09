@@ -221,6 +221,9 @@ export function CoverLetterGenerator() {
               Download as PDF
             </button>
           </div>
+          <a href="/resume-builder" className="mt-6 flex items-center justify-center gap-2 w-full py-3 px-4 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-xl transition-colors">
+  ✨ Next: Build your resume with AI →
+</a>
         </section>
       ) : null}
     </div>
