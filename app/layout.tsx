@@ -3,8 +3,8 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
-  title: "Lettro - AI Cover Letter Generator",
-  description: "Generate tailored, professional cover letters in seconds.",
+  title: "Lettro - AI Career Platform | Cover Letters, Resumes & More",
+  description: "AI-powered career platform. Generate cover letters, build resumes, prep for interviews and track applications in seconds.",
 };
 
 export default function RootLayout({
