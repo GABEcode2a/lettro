@@ -1,4 +1,4 @@
-export const FREE_JOB_LIMIT = 5;
+export const FREE_JOB_LIMIT = 3;
 
 export type UsageAccessFlags = {
   is_pro: boolean;

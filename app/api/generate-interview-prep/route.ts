@@ -155,12 +155,12 @@ export async function POST(request: NextRequest) {
     is_pro: usageRow?.is_pro ?? false,
     is_admin: usageRow?.is_admin ?? false,
   };
-  const freeLimit = 2;
+  const freeLimit = 1;
 
   if (isOverFreeLimit(interviewPrepCount, freeLimit, accessFlags)) {
     return NextResponse.json(
       {
-        error: "You've used your 2 free interview prep sessions. Upgrade to Pro for unlimited access.",
+        error: "You've used your 1 free interview prep sessions. Upgrade to Pro for unlimited access.",
         code: "FREE_LIMIT_REACHED",
       },
       { status: 403 },

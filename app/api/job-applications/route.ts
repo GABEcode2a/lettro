@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     if (isOverFreeLimit(currentCount, FREE_JOB_LIMIT, accessFlags)) {
       return NextResponse.json(
         {
-          error: "You've reached your 5 free job entries. Upgrade to Pro for unlimited tracking.",
+          error: "You've reached your 3 free job entries. Upgrade to Pro for unlimited tracking.",
           code: "FREE_LIMIT_REACHED",
         },
         { status: 403 },
