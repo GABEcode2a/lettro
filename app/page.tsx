@@ -7,16 +7,16 @@ export default function HomePage() {
         AI-Powered Career Platform
       </p>
       <h1 className="text-balance text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
-        Your AI Career Assistant — Land Your Dream Job Faster
+      Stop Spending Hours on Job Applications
       </h1>
       <p className="mt-6 max-w-2xl text-pretty text-base text-slate-300 sm:text-lg">
-        Cover letters, resumes, interview prep and more — everything you need to get hired, powered by AI
+      Lettro writes your cover letter and resume in seconds, preps you for interviews and tracks every application — so you can focus on getting hired.
       </p>
       <Link
         href="/generate"
         className="mt-10 inline-flex items-center rounded-xl bg-gold-500 px-6 py-3 text-base font-semibold text-navy-900 transition hover:bg-gold-400"
       >
-        Try For Free
+        Generate My Cover Letter Free →
       </Link>
     </section>
   );
