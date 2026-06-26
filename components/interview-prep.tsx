@@ -122,7 +122,7 @@ export function InterviewPrep() {
       <UpgradePromptModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
-        title="You've used your 2 free interview prep sessions!"
+        title="You've used your 1 free interview prep session!"
         description="Upgrade to Lettro Pro for unlimited interview prep, cover letters, and resumes"
       />
       <form

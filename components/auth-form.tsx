@@ -16,6 +16,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const isLogin = mode === "login";
@@ -76,7 +77,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
           <input
             id="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
@@ -84,6 +85,13 @@ export function AuthForm({ mode }: AuthFormProps) {
             className="w-full rounded-xl border border-slate-700 bg-navy-900 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-gold-500 focus:outline-none"
             placeholder="At least 6 characters"
           />
+          <button
+  type="button"
+  onClick={() => setShowPassword(!showPassword)}
+  className="text-xs font-medium text-gold-400 hover:text-gold-300 mt-1"
+>
+  {showPassword ? "Hide password" : "Show password"}
+</button>
         </div>
 
         <button

@@ -206,7 +206,7 @@ export function JobTracker() {
       <UpgradePromptModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
-        title="You've reached your 5 free job entries!"
+        title="You've reached your 3 free job entries!"
         description="Upgrade to Lettro Pro for unlimited job tracking, cover letters, resumes, and more"
       />
 
