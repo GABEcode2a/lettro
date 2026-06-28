@@ -24,8 +24,8 @@ export default function PricingPage() {
         <article className="rounded-2xl border border-gold-500/70 bg-navy-900 p-6 shadow-glow sm:p-8">
           <h2 className="text-2xl font-semibold text-white">PRO</h2>
           <div className="mt-3 space-y-1">
-            <p className="text-3xl font-bold text-gold-400">$24.99/month</p>
-            <p className="text-lg font-semibold text-gold-400/90">or $199.99/year</p>
+            <p className="text-3xl font-bold text-gold-400">$19.99/month</p>
+            <p className="text-lg font-semibold text-gold-400/90"> or $149.99/year</p>
           </div>
           <p className="mt-2 text-sm text-slate-300">Everything you need for your job search.</p>
 
