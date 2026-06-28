@@ -99,7 +99,7 @@ export function UpgradePromptModal({
             rel="noopener noreferrer"
             className="inline-flex w-full items-center justify-center rounded-xl bg-gold-500 px-5 py-3.5 text-center text-sm font-semibold text-navy-900 shadow-[0_4px_20px_rgba(212,175,55,0.25)] transition hover:bg-gold-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400"
           >
-            Upgrade to Pro - $24.99/month
+            Upgrade to Pro - $19.99/month
           </a>
 
           <button
