@@ -139,6 +139,16 @@ export async function POST(request: NextRequest) {
 
   const draftPrompt = `You are an expert career coach. Write a concise, compelling cover letter tailored to the provided resume and job description.
 
+CRITICAL — FACTUAL ACCURACY RULES:
+
+1. VERBATIM REPRODUCTION: Copy all user-provided details EXACTLY, character-for-character, as they appear in the input. This includes: names, email addresses, phone numbers, company names, school/university names, job titles, dates, locations, certifications, and any proper nouns. Never alter, correct, normalize, translate, or re-spell them — even if a name or term looks unusual, misspelled, or unfamiliar to you. If the user writes 'Mosaisi', output 'Mosaisi'. If they write 'KCA University', output 'KCA University'.
+
+2. NO INVENTED FACTS: Never fabricate experience, skills, metrics, dates, achievements, or qualifications that the user did not provide. Do not embellish numbers or add impressive-sounding details that aren't in the input.
+
+3. NO ALTERED NUMBERS: Reproduce all figures exactly as given (percentages, budgets, team sizes, years, dates). Never round, adjust, or 'improve' them.
+
+4. WORK ONLY WITH WHAT'S GIVEN: You may rephrase and present the user's real information persuasively, but every factual claim in your output must trace directly back to the user's input. If information is missing, omit it rather than inventing it.
+
 Selected tone: ${tone}
 Tone guidance: ${toneGuidance(tone)}
 
@@ -155,6 +165,16 @@ Requirements:
 - Return plain text only (no markdown, no subject line unless a letter greeting is natural).`;
 
   const humanizePrompt = `You are an expert editor. Rewrite the cover letter below so it reads like a real person wrote it—natural, varied, and authentic.
+
+CRITICAL — FACTUAL ACCURACY RULES:
+
+1. VERBATIM REPRODUCTION: Copy all user-provided details EXACTLY, character-for-character, as they appear in the input. This includes: names, email addresses, phone numbers, company names, school/university names, job titles, dates, locations, certifications, and any proper nouns. Never alter, correct, normalize, translate, or re-spell them — even if a name or term looks unusual, misspelled, or unfamiliar to you. If the user writes 'Mosaisi', output 'Mosaisi'. If they write 'KCA University', output 'KCA University'.
+
+2. NO INVENTED FACTS: Never fabricate experience, skills, metrics, dates, achievements, or qualifications that the user did not provide. Do not embellish numbers or add impressive-sounding details that aren't in the input.
+
+3. NO ALTERED NUMBERS: Reproduce all figures exactly as given (percentages, budgets, team sizes, years, dates). Never round, adjust, or 'improve' them.
+
+4. WORK ONLY WITH WHAT'S GIVEN: You may rephrase and present the user's real information persuasively, but every factual claim in your output must trace directly back to the user's input. If information is missing, omit it rather than inventing it.
 
 Keep the same selected tone: ${tone}
 ${toneGuidance(tone)}
